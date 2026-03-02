@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>A股复盘日报 - 2026-03-02</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -71,7 +72,7 @@
         @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
         .chart-container {
             position: relative;
-            height: 300px;
+            height: 350px;
             margin-top: 20px;
         }
         table {
@@ -88,6 +89,21 @@
         tr:hover { background: rgba(255,255,255,0.02); }
         .positive { color: #00c853; }
         .negative { color: #ff1744; }
+        .table-scrollable {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .table-scrollable::-webkit-scrollbar {
+            width: 8px;
+        }
+        .table-scrollable::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+        }
+        .table-scrollable::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+        }
         .footer {
             text-align: center;
             padding: 30px;
@@ -103,7 +119,8 @@
             <h1>📊 A股复盘日报</h1>
             <div class="date">2026-03-02 星期一</div>
         </div>
-
+        
+        <!-- 指数行情 -->
         <div class="card">
             <div class="card-title">📈 主要指数行情</div>
             <div class="index-grid">
@@ -112,55 +129,59 @@
                     <div class="index-name">上证指数</div>
                     <div class="index-value">4182.59</div>
                     <div class="index-change up">🟢 +0.47%</div>
-                    <div style="margin-top: 8px; color: #888; font-size: 0.85em;">成交额: 1345892469395亿</div>
+                    <div style="margin-top: 8px; color: #888; font-size: 0.85em;">成交额: 13459亿</div>
                 </div>
             
                 <div class="index-card down">
                     <div class="index-name">深证成指</div>
                     <div class="index-value">14465.79</div>
                     <div class="index-change down">🔴 -0.20%</div>
-                    <div style="margin-top: 8px; color: #888; font-size: 0.85em;">成交额: 1674826283498亿</div>
+                    <div style="margin-top: 8px; color: #888; font-size: 0.85em;">成交额: 16748亿</div>
                 </div>
             
                 <div class="index-card down">
                     <div class="index-name">创业板指</div>
                     <div class="index-value">3294.16</div>
                     <div class="index-change down">🔴 -0.49%</div>
-                    <div style="margin-top: 8px; color: #888; font-size: 0.85em;">成交额: 738402865762亿</div>
+                    <div style="margin-top: 8px; color: #888; font-size: 0.85em;">成交额: 7384亿</div>
                 </div>
             
                 <div class="index-card down">
                     <div class="index-name">科创50</div>
                     <div class="index-value">1464.77</div>
                     <div class="index-change down">🔴 -1.56%</div>
-                    <div style="margin-top: 8px; color: #888; font-size: 0.85em;">成交额: 79348051009亿</div>
+                    <div style="margin-top: 8px; color: #888; font-size: 0.85em;">成交额: 793亿</div>
                 </div>
             
             </div>
         </div>
-
+        
+        <!-- 量能变化趋势（双轴：柱状图+增长率折线） -->
         <div class="card">
-            <div class="card-title">💹 量能变化趋势 & 上证指数涨跌</div>
+            <div class="card-title">💹 量能变化趋势 & 增长率</div>
             <div class="chart-container">
                 <canvas id="volumeChart"></canvas>
             </div>
-            <div style="text-align: center; margin-top: 15px; color: #888;">
+            <div style="text-align: center; margin-top: 15px; color: #888; font-size: 0.9em;">
                 <span style="display: inline-block; margin: 0 15px;">
-                    <span style="display: inline-block; width: 20px; height: 12px; background: #00d4ff; margin-right: 5px;"></span>成交额（柱状）
+                    <span style="display: inline-block; width: 20px; height: 12px; background: rgba(0,212,255,0.6); margin-right: 5px;"></span>成交额
                 </span>
                 <span style="display: inline-block; margin: 0 15px;">
-                    <span style="display: inline-block; width: 20px; height: 3px; background: #ffd700; margin-right: 5px;"></span>上证涨跌%（折线）
+                    <span style="display: inline-block; width: 20px; height: 3px; background: #ffd700; margin-right: 5px;"></span>环比增长率
                 </span>
             </div>
         </div>
-
+        
         <div class="grid">
+            <!-- 涨跌停趋势 -->
             <div class="card">
                 <div class="card-title">🟢🔴 涨跌停家数趋势</div>
                 <div class="chart-container">
                     <canvas id="upDownChart"></canvas>
                 </div>
             </div>
+            
+            <!-- 最高连板数 -->
             <div class="card">
                 <div class="card-title">🚀 最高连板数</div>
                 <div class="chart-container">
@@ -168,53 +189,61 @@
                 </div>
             </div>
         </div>
-
+        
+        <!-- 涨停梯队历史（每天并排显示） -->
         <div class="card">
-            <div class="card-title">📊 涨停梯队历史对比</div>
+            <div class="card-title">📊 涨停梯队历史（每日各连板高度对比）</div>
             <div class="chart-container">
                 <canvas id="ladderHistoryChart"></canvas>
             </div>
-            <div style="text-align: center; margin-top: 15px; color: #888;">
-                不同日期各连板高度的家数分布
-            </div>
         </div>
-
+        
         <div class="grid">
+            <!-- 板块涨幅 TOP10 -->
             <div class="card">
                 <div class="card-title">🔥 板块涨幅 TOP10</div>
-                <table>
-                    <thead>
-                        <tr><th>排名</th><th>板块</th><th>涨幅</th></tr>
-                    </thead>
-                    <tbody>
+                <div class="table-scrollable">
+                    <table>
+                        <thead>
+                            <tr><th>排名</th><th>板块</th><th>涨幅</th></tr>
+                        </thead>
+                        <tbody>
 <tr><td>1</td><td><strong>石油行业</strong></td><td class="positive">+12.78%</td></tr><tr><td>2</td><td><strong>有色金属</strong></td><td class="positive">+3.51%</td></tr><tr><td>3</td><td><strong>飞机制造</strong></td><td class="positive">+3.35%</td></tr><tr><td>4</td><td><strong>煤炭行业</strong></td><td class="positive">+2.82%</td></tr><tr><td>5</td><td><strong>陶瓷行业</strong></td><td class="positive">+2.76%</td></tr>
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+            
+            <!-- 板块跌幅 TOP10 -->
             <div class="card">
                 <div class="card-title">❄️ 板块跌幅 TOP10</div>
-                <table>
-                    <thead>
-                        <tr><th>排名</th><th>板块</th><th>跌幅</th></tr>
-                    </thead>
-                    <tbody>
+                <div class="table-scrollable">
+                    <table>
+                        <thead>
+                            <tr><th>排名</th><th>板块</th><th>跌幅</th></tr>
+                        </thead>
+                        <tbody>
 <tr><td>1</td><td><strong>玻璃行业</strong></td><td class="negative">-2.11%</td></tr><tr><td>2</td><td><strong>服装鞋类</strong></td><td class="negative">-2.15%</td></tr><tr><td>3</td><td><strong>电子信息</strong></td><td class="negative">-2.17%</td></tr><tr><td>4</td><td><strong>纺织行业</strong></td><td class="negative">-2.38%</td></tr><tr><td>5</td><td><strong>家具行业</strong></td><td class="negative">-2.39%</td></tr>
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-
+        
         <div class="footer">
             <p>简报由 claw 🦀 自动生成</p>
             <p>数据源：新浪财经 / 东方财富 / 财联社</p>
-            <p>生成时间：2026-03-02 20:30:39</p>
+            <p>生成时间：2026-03-02 21:18:21</p>
         </div>
     </div>
-
+    
     <script>
-        const chartData = {"dates": ["02-24", "02-25", "02-26", "02-27", "02-28", "03-02"], "volumes": [22021.0, 24625.0, 25384.0, 24880.24, 24880.24, 30207.18752893], "shChanges": [0.85, 0.39, -0.44, 0.35, 0.39, 0.473], "limitUp": [65, 72, 58, 75, 75, 88], "limitDown": [3, 5, 12, 0, 0, 8], "maxHeight": [5, 6, 4, 7, 7, 3], "ladderHistory": {"02-24": {"1": 45, "2": 12, "3": 5, "4": 2, "5": 1}, "02-25": {"1": 50, "2": 15, "3": 5, "4": 1, "5": 0, "6": 1}, "02-26": {"1": 40, "2": 12, "3": 4, "4": 2}, "02-27": {"1": 65, "2": 5, "3": 3, "4": 1, "5": 0, "6": 0, "7": 1}, "02-28": {"1": 65, "2": 5, "3": 3, "4": 1, "7": 1}, "03-02": {"3": 2, "2": 18, "1": 68}}};
+        const chartData = {"dates": ["02-24", "02-25", "02-26", "02-27", "03-02"], "volumes": [22021.0, 24625.0, 25384.0, 24880.24, 30207.18752893], "growthRates": [0, 11.83, 3.08, -1.98, 21.41], "limitUp": [65, 72, 58, 75, 88], "limitDown": [3, 5, 12, 0, 8], "maxHeight": [5, 6, 4, 7, 3], "ladderData": {"02-24": {"1": 45, "2": 12, "3": 5, "4": 2, "5": 1, "6": 0, "7": 0}, "02-25": {"1": 50, "2": 15, "3": 5, "4": 1, "5": 0, "6": 1, "7": 0}, "02-26": {"1": 40, "2": 12, "3": 4, "4": 2, "5": 0, "6": 0, "7": 0}, "02-27": {"1": 65, "2": 5, "3": 3, "4": 1, "5": 0, "6": 0, "7": 1}, "03-02": {"1": 68, "2": 18, "3": 2, "4": 0, "5": 0, "6": 0, "7": 0}}};
         
-        // 1. 量能变化趋势（双轴图表）
+        // 注册数据标签插件
+        Chart.register(ChartDataLabels);
+        
+        // 1. 量能变化趋势（双轴：柱状图+增长率折线）
         new Chart(document.getElementById('volumeChart'), {
             type: 'bar',
             data: {
@@ -227,20 +256,40 @@
                         borderColor: '#00d4ff',
                         borderWidth: 1,
                         yAxisID: 'y',
-                        order: 2
+                        order: 2,
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#00d4ff',
+                            font: { size: 11 },
+                            formatter: function(value) {
+                                return value.toFixed(0);
+                            }
+                        }
                     },
                     {
-                        label: '上证指数涨跌%',
-                        data: chartData.shChanges,
+                        label: '环比增长率%',
+                        data: chartData.growthRates,
                         type: 'line',
                         borderColor: '#ffd700',
                         backgroundColor: 'rgba(255, 215, 0, 0.1)',
                         borderWidth: 3,
-                        pointRadius: 5,
+                        pointRadius: 6,
                         pointBackgroundColor: '#ffd700',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
                         yAxisID: 'y1',
                         order: 1,
-                        tension: 0.3
+                        tension: 0.3,
+                        datalabels: {
+                            anchor: 'center',
+                            align: 'top',
+                            color: '#ffd700',
+                            font: { size: 12, weight: 'bold' },
+                            formatter: function(value) {
+                                return (value > 0 ? '+' : '') + value.toFixed(2) + '%';
+                            }
+                        }
                     }
                 ]
             },
@@ -249,7 +298,8 @@
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { labels: { color: '#fff' } }
+                    legend: { labels: { color: '#fff' } },
+                    datalabels: { display: true }
                 },
                 scales: {
                     x: { ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' } },
@@ -265,9 +315,12 @@
                         type: 'linear',
                         display: true,
                         position: 'right',
-                        ticks: { color: '#ffd700', callback: function(v) { return (v > 0 ? '+' : '') + v.toFixed(2) + '%'; } },
+                        ticks: { 
+                            color: '#ffd700',
+                            callback: function(v) { return (v > 0 ? '+' : '') + v.toFixed(2) + '%'; }
+                        },
                         grid: { drawOnChartArea: false },
-                        title: { display: true, text: '涨跌幅', color: '#ffd700' }
+                        title: { display: true, text: '环比增长率', color: '#ffd700' }
                     }
                 }
             }
@@ -279,14 +332,41 @@
             data: {
                 labels: chartData.dates,
                 datasets: [
-                    { label: '🟢 涨停家数', data: chartData.limitUp, backgroundColor: 'rgba(0, 200, 83, 0.7)', borderColor: '#00c853', borderWidth: 1 },
-                    { label: '🔴 跌停家数', data: chartData.limitDown, backgroundColor: 'rgba(255, 23, 68, 0.7)', borderColor: '#ff1744', borderWidth: 1 }
+                    { 
+                        label: '🟢 涨停家数', 
+                        data: chartData.limitUp, 
+                        backgroundColor: 'rgba(0, 200, 83, 0.7)', 
+                        borderColor: '#00c853', 
+                        borderWidth: 1,
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#00c853',
+                            font: { size: 12, weight: 'bold' }
+                        }
+                    },
+                    { 
+                        label: '🔴 跌停家数', 
+                        data: chartData.limitDown, 
+                        backgroundColor: 'rgba(255, 23, 68, 0.7)', 
+                        borderColor: '#ff1744', 
+                        borderWidth: 1,
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#ff1744',
+                            font: { size: 12, weight: 'bold' }
+                        }
+                    }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#fff' } } },
+                plugins: { 
+                    legend: { labels: { color: '#fff' } },
+                    datalabels: { display: true }
+                },
                 scales: {
                     x: { ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' } },
                     y: { ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' } }
@@ -307,42 +387,97 @@
                     borderWidth: 3,
                     fill: true,
                     tension: 0.3,
-                    pointRadius: 6,
-                    pointBackgroundColor: '#ff9100'
+                    pointRadius: 8,
+                    pointBackgroundColor: '#ff9100',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        color: '#ff9100',
+                        font: { size: 14, weight: 'bold' },
+                        formatter: function(value) {
+                            return value + '连板';
+                        }
+                    }
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#fff' } } },
+                plugins: { 
+                    legend: { labels: { color: '#fff' } },
+                    datalabels: { display: true }
+                },
                 scales: {
                     x: { ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                    y: { ticks: { color: '#888', stepSize: 1, callback: function(v) { return v + '连板'; } }, grid: { color: 'rgba(255,255,255,0.05)' }, min: 0 }
+                    y: { 
+                        ticks: { color: '#888', stepSize: 1, callback: function(v) { return v + '连板'; } }, 
+                        grid: { color: 'rgba(255,255,255,0.05)' }, 
+                        min: 0 
+                    }
                 }
             }
         });
         
-        // 4. 涨停梯队历史对比
-        const ladderDates = Object.keys(chartData.ladderHistory);
-        const boardColors = ['rgba(0,200,83,0.8)', 'rgba(0,230,118,0.8)', 'rgba(255,214,0,0.8)', 'rgba(255,145,0,0.8)', 'rgba(255,23,68,0.8)', 'rgba(213,0,249,0.8)', 'rgba(124,77,255,0.8)'];
-        const boardDatasets = [];
-        for (let i = 1; i <= 7; i++) {
-            boardDatasets.push({
-                label: i + '连板',
-                data: ladderDates.map(date => chartData.ladderHistory[date][String(i)] || 0),
-                backgroundColor: boardColors[i-1]
-            });
-        }
+        // 4. 涨停梯队历史 - 每天并排显示各连板高度
+        const ladderDates = chartData.dates;
+        const boardHeights = ['7', '6', '5', '4', '3', '2', '1']; // 从高到低
+        const boardColors = {
+            '7': 'rgba(124, 77, 255, 0.9)',   // 紫色
+            '6': 'rgba(213, 0, 249, 0.9)',    // 深紫
+            '5': 'rgba(255, 23, 68, 0.9)',    // 红色
+            '4': 'rgba(255, 145, 0, 0.9)',    // 橙色
+            '3': 'rgba(255, 214, 0, 0.9)',    // 黄色
+            '2': 'rgba(0, 230, 118, 0.9)',    // 浅绿
+            '1': 'rgba(0, 200, 83, 0.9)'      // 绿色
+        };
+        
+        const ladderDatasets = boardHeights.map(h => ({
+            label: h + '连板',
+            data: ladderDates.map(date => chartData.ladderData[date][h] || 0),
+            backgroundColor: boardColors[h],
+            borderColor: boardColors[h],
+            borderWidth: 1,
+            barPercentage: 0.8,
+            categoryPercentage: 0.9,
+            datalabels: {
+                anchor: 'end',
+                align: 'top',
+                color: boardColors[h],
+                font: { size: 10 },
+                formatter: function(value) {
+                    return value > 0 ? value : '';
+                }
+            }
+        }));
+        
         new Chart(document.getElementById('ladderHistoryChart'), {
             type: 'bar',
-            data: { labels: ladderDates, datasets: boardDatasets },
+            data: {
+                labels: ladderDates,
+                datasets: ladderDatasets
+            },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#fff' }, position: 'top' } },
+                plugins: {
+                    legend: { 
+                        labels: { color: '#fff' },
+                        position: 'top'
+                    },
+                    datalabels: { display: true }
+                },
                 scales: {
-                    x: { ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' }, stacked: true },
-                    y: { ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' }, stacked: true, beginAtZero: true }
+                    x: { 
+                        ticks: { color: '#888' }, 
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    },
+                    y: { 
+                        ticks: { color: '#888' }, 
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        beginAtZero: true
+                    }
                 }
             }
         });

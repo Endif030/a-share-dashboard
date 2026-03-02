@@ -100,7 +100,7 @@
         <div class="footer">
             <p>简报由 claw 🦀 自动生成</p>
             <p>数据源：新浪财经 / 东方财富 / 财联社</p>
-            <p>生成时间：2026-03-02 21:39:07</p>
+            <p>生成时间：2026-03-02 21:40:22</p>
         </div>
     </div>
     
@@ -159,8 +159,8 @@
             data: {
                 labels: chartData.dates,
                 datasets: [
-                    { label: "🟢 涨停家数", data: chartData.limitUp, backgroundColor: "rgba(0, 200, 83, 0.7)", borderColor: "#00c853", borderWidth: 1, datalabels: { anchor: "end", align: "top", color: "#00c853", font: { size: 12, weight: "bold" } } },
-                    { label: "🔴 跌停家数", data: chartData.limitDown, backgroundColor: "rgba(255, 23, 68, 0.7)", borderColor: "#ff1744", borderWidth: 1, datalabels: { anchor: "end", align: "top", color: "#ff1744", font: { size: 12, weight: "bold" } } }
+                    { label: "🔴 涨停家数", data: chartData.limitUp, backgroundColor: "rgba(255, 23, 68, 0.7)", borderColor: "#ff1744", borderWidth: 1, datalabels: { anchor: "end", align: "top", color: "#ff1744", font: { size: 12, weight: "bold" } } },
+                    { label: "🟢 跌停家数", data: chartData.limitDown, backgroundColor: "rgba(0, 200, 83, 0.7)", borderColor: "#00c853", borderWidth: 1, datalabels: { anchor: "end", align: "top", color: "#00c853", font: { size: 12, weight: "bold" } } }
                 ]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#fff" } }, datalabels: { display: true } }, scales: { x: { ticks: { color: "#888" }, grid: { color: "rgba(255,255,255,0.05)" } }, y: { ticks: { color: "#888" }, grid: { color: "rgba(255,255,255,0.05)" } } } }

@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 A股复盘日报 - 投资仪表盘</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 头部 */
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header .date {
+            color: #888;
+            font-size: 1.1em;
+        }
+        
+        /* 卡片样式 */
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .card-title {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-title .icon {
+            font-size: 1.5em;
+        }
+        
+        /* 网格布局 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+        }
+        
+        /* 指数卡片 */
+        .index-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        
+        .index-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.3s;
+        }
+        
+        .index-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .index-card.up {
+            border-left: 4px solid #00c853;
+        }
+        
+        .index-card.down {
+            border-left: 4px solid #ff1744;
+        }
+        
+        .index-name {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        
+        .index-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .index-change {
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+        
+        .index-change.up { color: #00c853; }
+        .index-change.down { color: #ff1744; }
+        
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        th {
+            color: #888;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+        
+        tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+        
+        .positive { color: #00c853; }
+        .negative { color: #ff1744; }
+        
+        /* 情绪指标 */
+        .sentiment-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .sentiment-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .sentiment-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .sentiment-label {
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        /* 新闻列表 */
+        .news-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .news-item {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            gap: 12px;
+        }
+        
+        .news-time {
+            color: #888;
+            font-size: 0.85em;
+            min-width: 50px;
+        }
+        
+        .news-content {
+            flex: 1;
+            line-height: 1.5;
+        }
+        
+        .news-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            margin-right: 8px;
+        }
+        
+        .tag-conflict { background: #ff1744; }
+        .tag-policy { background: #2979ff; }
+        .tag-company { background: #00c853; }
+        
+        /* 图表容器 */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        /* 侧边栏 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .sidebar h2 {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .date-list {
+            list-style: none;
+        }
+        
+        .date-list li {
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .date-list li:hover, .date-list li.active {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .date-list .change {
+            font-size: 0.85em;
+            margin-left: 8px;
+        }
+        
+        .main-content {
+            margin-left: 270px;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+            .index-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        /* 加载动画 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>📅 历史回顾</h2>
+        <ul class="date-list" id="dateList">
+            <!-- 动态生成 -->
+        </ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>📊 A股复盘日报</h1>
+                <div class="date" id="currentDate">2026年3月2日 星期一</div>
+            </div>
+            
+            <!-- 指数行情 -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">📈</span>
+                    主要指数行情
+                </div>
+                <div class="index-grid" id="indexGrid">
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+            
+            <div class="grid">
+                <!-- 量能变化 -->
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">💹</span>
+                        量能变化趋势
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="volumeChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- 市场情绪 -->
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🎭</span>
+                        市场情绪
+                    </div>
+                    <div class="sentiment-grid" id="sentimentGrid">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid">
+                <!-- 板块表现 -->
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🔥</span>
+                        本周涨幅板块 TOP10
+                    </div>
+                    <table id="sectorTable">
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>板块名称</th>
+                                <th>涨跌幅</th>
+                                <th>趋势</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 涨停梯队 -->
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🚀</span>
+                        涨停梯队
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="ladderChart"></canvas>
+                    </div>
+                    <div id="heightInfo" style="margin-top: 15px; text-align: center;">
+                        <!-- 最高板信息 -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 强势股 -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">⭐</span>
+                    强势股 TOP10
+                </div>
+                <table id="strongStockTable">
+                    <thead>
+                        <tr>
+                            <th>排名</th>
+                            <th>股票名称</th>
+                            <th>代码</th>
+                            <th>涨幅</th>
+                            <th>所属板块</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 热点资讯 -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">📰</span>
+                    热点资讯
+                </div>
+                <div class="news-list" id="newsList">
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 示例数据（实际使用时会从JSON文件加载）
+        const sampleData = {
+            date: "2026-03-02",
+            indices: {
+                sh: { name: "上证指数", close: 4182.59, change_pct: 0.47, change_val: 19.71, amount: 1345892000000 },
+                sz: { name: "深证成指", close: 14465.79, change_pct: -0.20, change_val: -29.30, amount: 1674826000000 },
+                cy: { name: "创业板指", close: 3294.16, change_pct: -0.49, change_val: -16.14, amount: 738400000000 },
+                kc: { name: "科创50", close: 1464.77, change_pct: -1.56, change_val: -23.25, amount: 79348000000 }
+            },
+            total_amount: 30207.19,
+            market_sentiment: {
+                limit_up: 88,
+                limit_down: 8,
+                max_height: 3,
+                ladder: { "1": 68, "2": 18, "3": 2 }
+            },
+            top_sectors: {
+                gainers: [
+                    { name: "石油行业", change: 12.78 },
+                    { name: "有色金属", change: 3.51 },
+                    { name: "飞机制造", change: 3.35 },
+                    { name: "煤炭行业", change: 2.82 },
+                    { name: "陶瓷行业", change: 2.76 }
+                ],
+                losers: [
+                    { name: "纺织机械", change: -4.33 },
+                    { name: "印刷包装", change: -3.86 },
+                    { name: "传媒娱乐", change: -3.19 }
+                ]
+            },
+            strong_stocks: [
+                { name: "科力股份", code: "920088", change_pct: 30.00, industry: "油服工程" },
+                { name: "国航远洋", code: "920571", change_pct: 29.97, industry: "航运港口" },
+                { name: "新锦动力", code: "300157", change_pct: 20.03, industry: "通用设备" }
+            ],
+            news: [
+                { time: "15:49", tag: "conflict", tagName: "中东", title: "美以袭击杀害伊朗最高领导人，外交部：坚决反对、强烈谴责" },
+                { time: "15:40", tag: "conflict", tagName: "中东", title: "伊朗用'霍拉姆沙赫尔-4'导弹发动第十波攻势" },
+                { time: "15:40", tag: "policy", tagName: "宏观", title: "日本外汇事务负责人：中东不确定性给供应链造成困难" }
+            ]
+        };
+
+        // 历史数据（用于图表）
+        const historyData = {
+            dates: ['02-24', '02-25', '02-26', '02-27', '02-28', '03-02'],
+            volumes: [28500, 29200, 27800, 30100, 24880, 30207],
+            sh_changes: [0.32, -0.15, 0.88, -0.42, 0.39, 0.47]
+        };
+
+        // 渲染指数卡片
+        function renderIndices(data) {
+            const grid = document.getElementById('indexGrid');
+            grid.innerHTML = '';
+            
+            Object.values(data.indices).forEach(idx => {
+                const isUp = idx.change_pct >= 0;
+                const card = document.createElement('div');
+                card.className = `index-card ${isUp ? 'up' : 'down'}`;
+                card.innerHTML = `
+                    <div class="index-name">${idx.name}</div>
+                    <div class="index-value">${idx.close.toFixed(2)}</div>
+                    <div class="index-change ${isUp ? 'up' : 'down'}">
+                        ${isUp ? '🟢' : '🔴'} ${idx.change_pct > 0 ? '+' : ''}${idx.change_pct.toFixed(2)}%
+                    </div>
+                    <div style="margin-top: 8px; color: #888; font-size: 0.85em;">
+                        成交额: ${(idx.amount / 100000000).toFixed(0)}亿
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 渲染市场情绪
+        function renderSentiment(data) {
+            const grid = document.getElementById('sentimentGrid');
+            const sentiment = data.market_sentiment;
+            
+            grid.innerHTML = `
+                <div class="sentiment-item">
+                    <div class="sentiment-label">🟢 涨停家数</div>
+                    <div class="sentiment-value" style="color: #00c853;">${sentiment.limit_up}</div>
+                </div>
+                <div class="sentiment-item">
+                    <div class="sentiment-label">🔴 跌停家数</div>
+                    <div class="sentiment-value" style="color: #ff1744;">${sentiment.limit_down}</div>
+                </div>
+                <div class="sentiment-item">
+                    <div class="sentiment-label">📈 最高连板</div>
+                    <div class="sentiment-value" style="color: #ffd700;">${sentiment.max_height}连板</div>
+                </div>
+            `;
+        }
+
+        // 渲染板块表格
+        function renderSectors(data) {
+            const tbody = document.querySelector('#sectorTable tbody');
+            tbody.innerHTML = '';
+            
+            data.top_sectors.gainers.forEach((sector, i) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${i + 1}</td>
+                    <td><strong>${sector.name}</strong></td>
+                    <td class="positive">+${sector.change.toFixed(2)}%</td>
+                    <td>
+                        <div style="background: rgba(0,200,83,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+                            <div style="width: ${Math.min(sector.change * 5, 100)}%; height: 100%; background: #00c853;"></div>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 渲染强势股
+        function renderStrongStocks(data) {
+            const tbody = document.querySelector('#strongStockTable tbody');
+            tbody.innerHTML = '';
+            
+            data.strong_stocks.forEach((stock, i) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${i + 1}</td>
+                    <td><strong>${stock.name}</strong></td>
+                    <td>${stock.code}</td>
+                    <td class="positive">+${stock.change_pct.toFixed(2)}%</td>
+                    <td>${stock.industry}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 渲染新闻
+        function renderNews(data) {
+            const list = document.getElementById('newsList');
+            list.innerHTML = '';
+            
+            data.news.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'news-item';
+                div.innerHTML = `
+                    <div class="news-time">${item.time}</div>
+                    <div class="news-content">
+                        <span class="news-tag tag-${item.tag}">${item.tagName}</span>
+                        ${item.title}
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // 初始化量能趋势图
+        function initVolumeChart() {
+            const ctx = document.getElementById('volumeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: historyData.dates,
+                    datasets: [{
+                        label: '成交额（亿元）',
+                        data: historyData.volumes,
+                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#00d4ff',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#888' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        y: {
+                            ticks: { color: '#888' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 初始化涨停梯队图
+        function initLadderChart(data) {
+            const ctx = document.getElementById('ladderChart').getContext('2d');
+            const ladder = data.market_sentiment.ladder;
+            const labels = Object.keys(ladder).sort((a, b) => b - a).map(k => k + '连板');
+            const values = Object.keys(ladder).sort((a, b) => b - a).map(k => ladder[k]);
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '家数',
+                        data: values,
+                        backgroundColor: [
+                            'rgba(255, 23, 68, 0.8)',
+                            'rgba(255, 145, 0, 0.8)',
+                            'rgba(255, 214, 0, 0.8)',
+                            'rgba(0, 200, 83, 0.8)'
+                        ],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#fff' },
+                            grid: { display: false }
+                        },
+                        y: {
+                            ticks: { color: '#888' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        }
+                    }
+                }
+            });
+            
+            // 显示最高板信息
+            document.getElementById('heightInfo').innerHTML = `
+                <span style="color: #ffd700; font-size: 1.2em;">🏆 最高连板: ${data.market_sentiment.max_height}连板</span>
+            `;
+        }
+
+        // 初始化页面
+        function init() {
+            renderIndices(sampleData);
+            renderSentiment(sampleData);
+            renderSectors(sampleData);
+            renderStrongStocks(sampleData);
+            renderNews(sampleData);
+            initVolumeChart();
+            initLadderChart(sampleData);
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

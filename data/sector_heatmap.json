@@ -1,0 +1,27 @@
+[
+  {
+    "name": "石油行业",
+    "avg_change": 12.78,
+    "days": 1
+  },
+  {
+    "name": "有色金属",
+    "avg_change": 3.51,
+    "days": 1
+  },
+  {
+    "name": "飞机制造",
+    "avg_change": 3.35,
+    "days": 1
+  },
+  {
+    "name": "煤炭行业",
+    "avg_change": 2.82,
+    "days": 1
+  },
+  {
+    "name": "陶瓷行业",
+    "avg_change": 2.76,
+    "days": 1
+  }
+]

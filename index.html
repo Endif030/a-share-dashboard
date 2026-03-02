@@ -190,9 +190,9 @@
             </div>
         </div>
         
-        <!-- 涨停梯队历史（每天并排显示） -->
+        <!-- 涨停梯队历史（x轴为连板高度，每个日期一组） -->
         <div class="card">
-            <div class="card-title">📊 涨停梯队历史（每日各连板高度对比）</div>
+            <div class="card-title">📊 涨停梯队历史（各日期连板高度分布）</div>
             <div class="chart-container">
                 <canvas id="ladderHistoryChart"></canvas>
             </div>
@@ -233,7 +233,7 @@
         <div class="footer">
             <p>简报由 claw 🦀 自动生成</p>
             <p>数据源：新浪财经 / 东方财富 / 财联社</p>
-            <p>生成时间：2026-03-02 21:18:21</p>
+            <p>生成时间：2026-03-02 21:28:13</p>
         </div>
     </div>
     
@@ -307,6 +307,7 @@
                         type: 'linear',
                         display: true,
                         position: 'left',
+                        min: 10000,
                         ticks: { color: '#888' },
                         grid: { color: 'rgba(255,255,255,0.05)' },
                         title: { display: true, text: '成交额（亿元）', color: '#00d4ff' }
@@ -420,31 +421,32 @@
             }
         });
         
-        // 4. 涨停梯队历史 - 每天并排显示各连板高度
+        // 4. 涨停梯队历史 - 每个日期显示7个连板高度的柱子
         const ladderDates = chartData.dates;
-        const boardHeights = ['7', '6', '5', '4', '3', '2', '1']; // 从高到低
+        const boardHeights = ['7', '6', '5', '4', '3', '2', '1'];
         const boardColors = {
-            '7': 'rgba(124, 77, 255, 0.9)',   // 紫色
-            '6': 'rgba(213, 0, 249, 0.9)',    // 深紫
-            '5': 'rgba(255, 23, 68, 0.9)',    // 红色
-            '4': 'rgba(255, 145, 0, 0.9)',    // 橙色
-            '3': 'rgba(255, 214, 0, 0.9)',    // 黄色
-            '2': 'rgba(0, 230, 118, 0.9)',    // 浅绿
-            '1': 'rgba(0, 200, 83, 0.9)'      // 绿色
+            '7': 'rgba(124, 77, 255, 0.9)',
+            '6': 'rgba(213, 0, 249, 0.9)',
+            '5': 'rgba(255, 23, 68, 0.9)',
+            '4': 'rgba(255, 145, 0, 0.9)',
+            '3': 'rgba(255, 214, 0, 0.9)',
+            '2': 'rgba(0, 230, 118, 0.9)',
+            '1': 'rgba(0, 200, 83, 0.9)'
         };
         
-        const ladderDatasets = boardHeights.map(h => ({
-            label: h + '连板',
-            data: ladderDates.map(date => chartData.ladderData[date][h] || 0),
-            backgroundColor: boardColors[h],
-            borderColor: boardColors[h],
+        // 为每个日期创建数据集
+        const ladderDatasets = ladderDates.map((date, index) => ({
+            label: date,
+            data: boardHeights.map(h => chartData.ladderData[date][h] || 0),
+            backgroundColor: boardHeights.map(h => boardColors[h]),
+            borderColor: boardHeights.map(h => boardColors[h]),
             borderWidth: 1,
-            barPercentage: 0.8,
-            categoryPercentage: 0.9,
+            barPercentage: 0.7,
+            categoryPercentage: 0.8,
             datalabels: {
                 anchor: 'end',
                 align: 'top',
-                color: boardColors[h],
+                color: '#fff',
                 font: { size: 10 },
                 formatter: function(value) {
                     return value > 0 ? value : '';
@@ -455,7 +457,7 @@
         new Chart(document.getElementById('ladderHistoryChart'), {
             type: 'bar',
             data: {
-                labels: ladderDates,
+                labels: boardHeights.map(h => h + '连'),
                 datasets: ladderDatasets
             },
             options: {
@@ -470,7 +472,10 @@
                 },
                 scales: {
                     x: { 
-                        ticks: { color: '#888' }, 
+                        ticks: { 
+                            color: '#fff',
+                            font: { size: 12, weight: 'bold' }
+                        }, 
                         grid: { color: 'rgba(255,255,255,0.05)' }
                     },
                     y: { 

@@ -100,7 +100,7 @@
         <div class="footer">
             <p>简报由 claw 🦀 自动生成</p>
             <p>数据源：新浪财经 / 东方财富 / 财联社</p>
-            <p>生成时间：2026-03-02 21:42:01</p>
+            <p>生成时间：2026-03-02 21:47:28</p>
         </div>
     </div>
     
@@ -173,7 +173,7 @@
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#fff" } }, datalabels: { display: true } }, scales: { x: { ticks: { color: "#888" }, grid: { color: "rgba(255,255,255,0.05)" } }, y: { ticks: { color: "#888", stepSize: 1, callback: function(v) { return v + "连板"; } }, grid: { color: "rgba(255,255,255,0.05)" }, min: 0 } } }
         });
         
-        // 4. 涨停梯队历史 - X轴为连板高度，每个高度并列显示各日期数据
+        // 4. 涨停梯队历史 - 按日期划分，堆叠柱状图
         const ladderDates = chartData.dates;
         const boardHeights = ["7", "6", "5", "4", "3", "2", "1"];
         const boardColors = {
@@ -186,20 +186,18 @@
             "1": "rgba(0, 200, 83, 0.9)"
         };
         
-        // 为每个日期创建数据集
-        const dateColors = ["#00d4ff", "#7b2cbf", "#ff9100", "#00c853", "#ff1744"]; // 不同日期的颜色
-        const ladderDatasets = ladderDates.map((date, index) => ({
-            label: date,
-            data: boardHeights.map(h => chartData.ladderData[date][h] || 0),
-            backgroundColor: dateColors[index % dateColors.length],
-            borderColor: dateColors[index % dateColors.length],
+        const ladderDatasets = boardHeights.map(h => ({
+            label: h + "连板",
+            data: ladderDates.map(date => chartData.ladderData[date][h] || 0),
+            backgroundColor: boardColors[h],
+            borderColor: boardColors[h],
             borderWidth: 1,
             barPercentage: 0.7,
             categoryPercentage: 0.8,
             datalabels: {
                 anchor: "end",
                 align: "top",
-                color: dateColors[index % dateColors.length],
+                color: "#fff",
                 font: { size: 10, weight: "bold" },
                 formatter: function(value) {
                     return value > 0 ? value : "";
@@ -210,7 +208,7 @@
         new Chart(document.getElementById("ladderHistoryChart"), {
             type: "bar",
             data: {
-                labels: boardHeights.map(h => h + "连"),
+                labels: ladderDates,
                 datasets: ladderDatasets
             },
             options: {
@@ -227,13 +225,15 @@
                     x: { 
                         ticks: { 
                             color: "#fff",
-                            font: { size: 14, weight: "bold" }
+                            font: { size: 12 }
                         }, 
-                        grid: { color: "rgba(255,255,255,0.05)" }
+                        grid: { color: "rgba(255,255,255,0.05)" },
+                        stacked: true
                     },
                     y: { 
                         ticks: { color: "#888" }, 
                         grid: { color: "rgba(255,255,255,0.05)" },
+                        stacked: true,
                         beginAtZero: true
                     }
                 }
